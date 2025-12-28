@@ -6,14 +6,133 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeftIcon, ArrowRightIcon, SparklesIcon } from "@heroicons/react/24/solid";
 
-// ... (imports)
+const AnnotationStage = dynamic(
+    () => import("@/components/Canvas/AnnotationStage"),
+    { ssr: false }
+);
+
+interface Annotation {
+    id: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    label: string;
+}
+
+interface Image {
+    id: string;
+    file_path: string;
+    filename: string;
+}
+
+// Simple debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+    return debouncedValue;
+}
 
 export default function AnnotationPage({ params }: { params: Promise<{ id: string, imageId: string }> }) {
-    // ... (state)
+    const { id, imageId } = use(params);
+    const router = useRouter();
+
+    const [tool, setTool] = useState<"select" | "rect" | "pan">("rect");
+    const [annotations, setAnnotations] = useState<Annotation[]>([]);
+    const [imagePath, setImagePath] = useState<string>("");
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+
+    const [projectImages, setProjectImages] = useState<Image[]>([]);
+    const [projectClasses, setProjectClasses] = useState<string[]>([]);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [detecting, setDetecting] = useState(false);
 
-    // ... (useEffect, etc.)
+    // Load Project & Image Data
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Get Project Images for Navigation
+                const res = await fetch(`http://localhost:8000/projects/${id}`);
+                if (res.ok) {
+                    const project = await res.json();
+                    setProjectImages(project.images);
+                    const img = project.images.find((i: any) => i.id === imageId);
+                    if (img) {
+                        setImagePath(`http://localhost:8000/static/${id}/images/${img.file_path}`);
+                    }
+                }
 
+                // Get Existing Annotations
+                const annRes = await fetch(`http://localhost:8000/projects/${id}/images/${imageId}/annotations`);
+                if (annRes.ok) {
+                    const anns = await annRes.json();
+                    setAnnotations(anns);
+                }
+
+                // Get Classes
+                const classRes = await fetch(`http://localhost:8000/projects/${id}/classes`);
+                if (classRes.ok) {
+                    const data = await classRes.json();
+                    setProjectClasses(data.classes || []);
+                }
+
+                setIsLoaded(true);
+
+            } catch (e) {
+                console.error("Failed to load data", e);
+            }
+        }
+        fetchData();
+    }, [id, imageId]);
+
+    // Auto-Save Logic
+    // We debounce the annotations change
+    const debouncedAnnotations = useDebounce(annotations, 1000);
+
+    useEffect(() => {
+        if (!isLoaded) return; // Don't save on initial load
+
+        const save = async () => {
+            setSaving(true);
+            try {
+                await fetch(`http://localhost:8000/projects/${id}/images/${imageId}/annotations`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(debouncedAnnotations),
+                });
+            } catch (e) {
+                console.error("Save failed", e);
+            } finally {
+                setSaving(false);
+            }
+        };
+
+        save();
+    }, [debouncedAnnotations, id, imageId, isLoaded]);
+
+    // Save Classes
+    const saveClasses = async (newClasses: string[]) => {
+        try {
+            await fetch(`http://localhost:8000/projects/${id}/classes`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ classes: newClasses }),
+            });
+            setProjectClasses(newClasses);
+        } catch (e) {
+            console.error("Failed to save classes", e);
+        }
+    };
+
+    // Auto Detect Logic (YOLO)
     const handleAutoDetect = async () => {
         setDetecting(true);
         try {
@@ -22,9 +141,6 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
             });
             if (res.ok) {
                 const newAnns = await res.json();
-                // Merge with existing or replace? Let's apppend for now.
-                // We should probably check for duplicates based on location/label or just let user decide.
-                // Unique IDs are generated by backend: "auto-..."
                 setAnnotations(prev => [...prev, ...newAnns]);
             }
         } catch (e) {
@@ -34,16 +150,82 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
         }
     };
 
-    // ... (render)
+
+    // Navigation Logic
+    const currentIndex = projectImages.findIndex(img => img.id === imageId);
+    const prevImageId = currentIndex > 0 ? projectImages[currentIndex - 1].id : null;
+    const nextImageId = currentIndex < projectImages.length - 1 ? projectImages[currentIndex + 1].id : null;
+
+    const goToImage = (newId: string) => {
+        router.push(`/projects/${id}/images/${newId}`);
+    };
+
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.target instanceof HTMLInputElement) return; // Ignore if typing
+
+            if (e.key === "ArrowRight" && nextImageId) goToImage(nextImageId);
+            if (e.key === "ArrowLeft" && prevImageId) goToImage(prevImageId);
+            if (e.key.toLowerCase() === "v") setTool("select");
+            if (e.key.toLowerCase() === "r") setTool("rect");
+            if (e.key.toLowerCase() === "h") setTool("pan");
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [nextImageId, prevImageId]);
+
+
+    // Handlers (Edit/Delete) - Same as before
+    const handleLabelChange = (newLabel: string) => {
+        if (!selectedId) return;
+        setAnnotations(annotations.map(ann =>
+            ann.id === selectedId ? { ...ann, label: newLabel } : ann
+        ));
+    };
+
+    const handleLabelBlur = (label: string) => {
+        if (label && !projectClasses.includes(label)) {
+            const newClasses = [...projectClasses, label];
+            saveClasses(newClasses);
+        }
+    };
+
+    const handleDelete = () => {
+        if (!selectedId) return;
+        setAnnotations(annotations.filter(ann => ann.id !== selectedId));
+        setSelectedId(null);
+    };
+
+    const selectedAnnotation = annotations.find(a => a.id === selectedId);
 
     return (
         <main className="h-screen flex flex-col bg-gray-950 text-white overflow-hidden">
             {/* Header */}
             <header className="h-14 border-b border-gray-800 flex items-center px-4 justify-between bg-gray-900 z-10">
                 <div className="flex items-center gap-4">
-                    {/* ... (navigation) ... */}
+                    <Link href={`/projects/${id}`} className="text-gray-400 hover:text-white transition-colors">
+                        ← Back
+                    </Link>
                     <div className="flex items-center gap-2">
-                        {/* ... (arrows) ... */}
+                        <button
+                            disabled={!prevImageId}
+                            onClick={() => prevImageId && goToImage(prevImageId)}
+                            className="p-1 hover:bg-gray-800 rounded disabled:opacity-30"
+                        >
+                            <ArrowLeftIcon className="w-4 h-4" />
+                        </button>
+                        <span className="text-xs text-gray-500">
+                            {currentIndex + 1} / {projectImages.length}
+                        </span>
+                        <button
+                            disabled={!nextImageId}
+                            onClick={() => nextImageId && goToImage(nextImageId)}
+                            className="p-1 hover:bg-gray-800 rounded disabled:opacity-30"
+                        >
+                            <ArrowRightIcon className="w-4 h-4" />
+                        </button>
                     </div>
                 </div>
 
@@ -63,7 +245,9 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 <div>
-                    {/* ... (save status) ... */}
+                    <span className={`text-xs px-2 py-1 rounded transition-colors ${saving ? "text-yellow-400" : "text-green-500"}`}>
+                        {saving ? "Saving..." : "Saved"}
+                    </span>
                 </div>
             </header>
 
