@@ -45,8 +45,10 @@ def train_model(project_id: str, request: TrainRequest, db: Session = Depends(ge
     if not classes:
         raise HTTPException(status_code=400, detail="Class list is empty.")
 
-    # 2. Convert Data
-    yaml_path = convert_to_yolo_format(project_id, STORAGE_PATH, classes)
+    image_map = {str(img.id): img.file_path for img in images}
+
+    # 3. Convert Data
+    yaml_path = convert_to_yolo_format(project_id, STORAGE_PATH, classes, image_map)
     if not yaml_path:
         raise HTTPException(status_code=400, detail="Failed to prepare dataset. Are there any labels?")
         

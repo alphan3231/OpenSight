@@ -7,3 +7,9 @@ venv/
 .DS_Store
 data/
 test_script.py
+verify_system.py
+# Testing artifacts
+verify_system.py
+test_image.jpg
+test_image.png
+backend/yolov8n.pt
