@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, use, useEffect } from "react";
+import { useState, use, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 
 const AnnotationStage = dynamic(
     () => import("@/components/Canvas/AnnotationStage"),
@@ -19,31 +20,120 @@ interface Annotation {
     label: string;
 }
 
+interface Image {
+    id: string;
+    file_path: string;
+    filename: string;
+}
+
+// Simple debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+    return debouncedValue;
+}
+
 export default function AnnotationPage({ params }: { params: Promise<{ id: string, imageId: string }> }) {
     const { id, imageId } = use(params);
+    const router = useRouter();
 
     const [tool, setTool] = useState<"select" | "rect" | "pan">("rect");
     const [annotations, setAnnotations] = useState<Annotation[]>([]);
     const [imagePath, setImagePath] = useState<string>("");
     const [selectedId, setSelectedId] = useState<string | null>(null);
 
+    const [projectImages, setProjectImages] = useState<Image[]>([]);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    // Load Project & Image Data
     useEffect(() => {
-        const fetchImage = async () => {
+        const fetchData = async () => {
             try {
+                // Get Project Images for Navigation
                 const res = await fetch(`http://localhost:8000/projects/${id}`);
                 const project = await res.json();
+                setProjectImages(project.images);
+
                 const img = project.images.find((i: any) => i.id === imageId);
                 if (img) {
                     setImagePath(`http://localhost:8000/static/${id}/images/${img.file_path}`);
                 }
+
+                // Get Existing Annotations
+                const annRes = await fetch(`http://localhost:8000/projects/${id}/images/${imageId}/annotations`);
+                if (annRes.ok) {
+                    const anns = await annRes.json();
+                    setAnnotations(anns);
+                }
+                setIsLoaded(true);
+
             } catch (e) {
-                console.error("Failed to load image", e);
+                console.error("Failed to load data", e);
             }
         }
-        fetchImage();
+        fetchData();
     }, [id, imageId]);
 
-    // Handle label change
+    // Auto-Save Logic
+    // We debounce the annotations change
+    const debouncedAnnotations = useDebounce(annotations, 1000);
+
+    useEffect(() => {
+        if (!isLoaded) return; // Don't save on initial load
+
+        const save = async () => {
+            setSaving(true);
+            try {
+                await fetch(`http://localhost:8000/projects/${id}/images/${imageId}/annotations`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(debouncedAnnotations),
+                });
+            } catch (e) {
+                console.error("Save failed", e);
+            } finally {
+                setSaving(false);
+            }
+        };
+
+        save();
+    }, [debouncedAnnotations, id, imageId, isLoaded]);
+
+    // Navigation Logic
+    const currentIndex = projectImages.findIndex(img => img.id === imageId);
+    const prevImageId = currentIndex > 0 ? projectImages[currentIndex - 1].id : null;
+    const nextImageId = currentIndex < projectImages.length - 1 ? projectImages[currentIndex + 1].id : null;
+
+    const goToImage = (newId: string) => {
+        router.push(`/projects/${id}/images/${newId}`);
+    };
+
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.target instanceof HTMLInputElement) return; // Ignore if typing
+
+            if (e.key === "ArrowRight" && nextImageId) goToImage(nextImageId);
+            if (e.key === "ArrowLeft" && prevImageId) goToImage(prevImageId);
+            if (e.key.toLowerCase() === "v") setTool("select");
+            if (e.key.toLowerCase() === "r") setTool("rect");
+            if (e.key.toLowerCase() === "h") setTool("pan");
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [nextImageId, prevImageId]);
+
+
+    // Handlers (Edit/Delete) - Same as before
     const handleLabelChange = (newLabel: string) => {
         if (!selectedId) return;
         setAnnotations(annotations.map(ann =>
@@ -51,7 +141,6 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
         ));
     };
 
-    // Handle delete
     const handleDelete = () => {
         if (!selectedId) return;
         setAnnotations(annotations.filter(ann => ann.id !== selectedId));
@@ -62,29 +151,50 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
 
     return (
         <main className="h-screen flex flex-col bg-gray-950 text-white overflow-hidden">
-            {/* Header with Tools */}
+            {/* Header */}
             <header className="h-14 border-b border-gray-800 flex items-center px-4 justify-between bg-gray-900 z-10">
                 <div className="flex items-center gap-4">
                     <Link href={`/projects/${id}`} className="text-gray-400 hover:text-white transition-colors">
                         ← Back
                     </Link>
-                    <h1 className="font-semibold text-sm">Annotation Studio</h1>
+                    <div className="flex items-center gap-2">
+                        <button
+                            disabled={!prevImageId}
+                            onClick={() => prevImageId && goToImage(prevImageId)}
+                            className="p-1 hover:bg-gray-800 rounded disabled:opacity-30"
+                        >
+                            <ArrowLeftIcon className="w-4 h-4" />
+                        </button>
+                        <span className="text-xs text-gray-500">
+                            {currentIndex + 1} / {projectImages.length}
+                        </span>
+                        <button
+                            disabled={!nextImageId}
+                            onClick={() => nextImageId && goToImage(nextImageId)}
+                            className="p-1 hover:bg-gray-800 rounded disabled:opacity-30"
+                        >
+                            <ArrowRightIcon className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
+
                 <div className="flex items-center gap-2 bg-gray-800 rounded p-1">
                     <button onClick={() => setTool("select")} className={`px-3 py-1 text-xs rounded ${tool === "select" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Select (V)</button>
                     <button onClick={() => setTool("pan")} className={`px-3 py-1 text-xs rounded ${tool === "pan" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Pan (H)</button>
                     <button onClick={() => setTool("rect")} className={`px-3 py-1 text-xs rounded ${tool === "rect" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Rectangle (R)</button>
                 </div>
+
                 <div>
-                    {/* Save placeholder */}
-                    <button className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded text-xs">Save</button>
+                    <span className={`text-xs px-2 py-1 rounded transition-colors ${saving ? "text-yellow-400" : "text-green-500"}`}>
+                        {saving ? "Saving..." : "Saved"}
+                    </span>
                 </div>
             </header>
 
             <div className="flex-1 flex overflow-hidden">
                 {/* Helper Sidebar */}
                 <div className="w-16 border-r border-gray-800 bg-gray-900 flex flex-col items-center py-4 gap-4">
-                    {/* Tool Icons could go here */}
+                    {/* Could add tool icons here */}
                 </div>
 
                 {/* Canvas */}
@@ -144,7 +254,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                                     key={ann.id}
                                     onClick={() => {
                                         setSelectedId(ann.id);
-                                        setTool("select"); // Auto switch tool
+                                        setTool("select");
                                     }}
                                     className={`p-2 rounded cursor-pointer text-xs flex justify-between items-center border ${ann.id === selectedId ? "bg-blue-900/30 border-blue-500" : "bg-gray-800 border-transparent hover:border-gray-600"
                                         }`}

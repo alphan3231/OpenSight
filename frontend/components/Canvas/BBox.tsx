@@ -8,7 +8,11 @@ interface BBoxProps {
     label?: string;
     color?: string;
     isSelected?: boolean;
+    scale?: number;
     onSelect?: () => void;
+    draggable?: boolean;
+    onDragEnd?: (e: any) => void;
+    onTransformEnd?: (e: any) => void;
 }
 
 export default function BBox({
@@ -19,31 +23,47 @@ export default function BBox({
     label,
     color = "#00ff00",
     isSelected = false,
+    scale = 1,
     onSelect,
+    draggable,
+    onDragEnd,
+    onTransformEnd
 }: BBoxProps) {
+    const fontSize = 14 / scale;
+    const padding = 4 / scale;
+    const strokeWidth = (isSelected ? 3 : 2) / scale;
+
     return (
-        <Group x={x} y={y} onClick={onSelect} onTap={onSelect}>
+        <Group
+            x={x}
+            y={y}
+            onClick={onSelect}
+            onTap={onSelect}
+            draggable={draggable}
+            onDragEnd={onDragEnd}
+            onTransformEnd={onTransformEnd}
+        >
             <Rect
                 width={width}
                 height={height}
                 stroke={color}
-                strokeWidth={isSelected ? 3 : 2}
+                strokeWidth={strokeWidth}
                 fill={isSelected ? `${color}33` : "transparent"} // Transparent fill normally, light color when selected
             />
             {label && (
                 <React.Fragment>
                     <Rect
-                        y={-20}
-                        width={label.length * 8 + 10}
-                        height={20}
+                        y={-(fontSize + padding * 2)}
+                        width={label.length * (fontSize * 0.6) + padding * 2} // Approx width
+                        height={fontSize + padding * 2}
                         fill={color}
                     />
                     <Text
                         text={label}
-                        y={-16}
-                        x={5}
+                        y={-(fontSize + padding)}
+                        x={padding}
                         fill="white"
-                        fontSize={12}
+                        fontSize={fontSize}
                         fontStyle="bold"
                     />
                 </React.Fragment>

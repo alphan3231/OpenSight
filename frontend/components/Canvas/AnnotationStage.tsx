@@ -216,6 +216,7 @@ export default function AnnotationStage({
                             {...ann}
                             id={ann.id} // Important for transformer search
                             isSelected={ann.id === selectedId}
+                            scale={scale}
                             onSelect={() => {
                                 if (tool === 'select') onSelectAnnotation(ann.id);
                             }}

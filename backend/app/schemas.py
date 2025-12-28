@@ -33,3 +33,14 @@ class Project(ProjectBase):
 
     class Config:
         orm_mode = True
+
+class Annotation(BaseModel):
+    id: str
+    x: float
+    y: float
+    width: float
+    height: float
+    label: str
+
+class AnnotationList(BaseModel):
+    annotations: List[Annotation]
