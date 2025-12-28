@@ -105,8 +105,13 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                   Using a placeholder or assumed invalid URL for now until we serve static files. 
                   Actually, we need to serve the 'data' folder via FastAPI or Next.js.
                   Let's assume backend serves them at /static/ or similar, or just show placeholder. */}
-                            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-xs text-gray-500">
-                                {img.filename}
+                            <img
+                                src={`http://localhost:8000/static/${project.id}/images/${img.file_path}`}
+                                alt={img.filename}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                                <span className="text-xs truncate w-full text-white">{img.filename}</span>
                             </div>
                         </div>
                     ))}
