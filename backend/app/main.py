@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
-from .routers import projects, images, annotations, classes
+from .routers import projects, images, annotations, classes, ai
 import os
 
 # Create tables with retry logic
@@ -38,6 +38,7 @@ app.include_router(projects.router)
 app.include_router(images.router)
 app.include_router(annotations.router)
 app.include_router(classes.router)
+app.include_router(ai.router)
 
 # Mount static files
 STORAGE_PATH = os.getenv("STORAGE_PATH", "/data")
