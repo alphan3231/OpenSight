@@ -5,8 +5,24 @@ from .database import engine, Base
 from .routers import projects, images
 import os
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+# Create tables with retry logic
+import time
+from sqlalchemy.exc import OperationalError
+
+MAX_RETRIES = 10
+RETRY_DELAY = 2
+
+for i in range(MAX_RETRIES):
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("Database connected and tables created.")
+        break
+    except OperationalError as e:
+        if i == MAX_RETRIES - 1:
+            print(f"Failed to connect to database after {MAX_RETRIES} attempts.")
+            raise e
+        print(f"Database not ready. Retrying in {RETRY_DELAY} seconds... ({i+1}/{MAX_RETRIES})")
+        time.sleep(RETRY_DELAY)
 
 app = FastAPI(title="OpenSight API", version="0.1.0")
 
