@@ -50,6 +50,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
     const [selectedId, setSelectedId] = useState<string | null>(null);
 
     const [projectImages, setProjectImages] = useState<Image[]>([]);
+    const [projectClasses, setProjectClasses] = useState<string[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
     const [saving, setSaving] = useState(false);
 
@@ -73,6 +74,14 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                     const anns = await annRes.json();
                     setAnnotations(anns);
                 }
+
+                // Get Classes
+                const classRes = await fetch(`http://localhost:8000/projects/${id}/classes`);
+                if (classRes.ok) {
+                    const data = await classRes.json();
+                    setProjectClasses(data.classes || []);
+                }
+
                 setIsLoaded(true);
 
             } catch (e) {
@@ -107,6 +116,19 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
         save();
     }, [debouncedAnnotations, id, imageId, isLoaded]);
 
+    const saveClasses = async (newClasses: string[]) => {
+        try {
+            await fetch(`http://localhost:8000/projects/${id}/classes`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ classes: newClasses }),
+            });
+            setProjectClasses(newClasses);
+        } catch (e) {
+            console.error("Failed to save classes", e);
+        }
+    };
+
     // Navigation Logic
     const currentIndex = projectImages.findIndex(img => img.id === imageId);
     const prevImageId = currentIndex > 0 ? projectImages[currentIndex - 1].id : null;
@@ -139,6 +161,13 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
         setAnnotations(annotations.map(ann =>
             ann.id === selectedId ? { ...ann, label: newLabel } : ann
         ));
+    };
+
+    const handleLabelBlur = (label: string) => {
+        if (label && !projectClasses.includes(label)) {
+            const newClasses = [...projectClasses, label];
+            saveClasses(newClasses);
+        }
     };
 
     const handleDelete = () => {
@@ -220,11 +249,18 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                                 <div>
                                     <label className="text-xs text-gray-400 block mb-1">Class Label</label>
                                     <input
+                                        list="classes"
                                         type="text"
                                         value={selectedAnnotation.label}
                                         onChange={(e) => handleLabelChange(e.target.value)}
+                                        onBlur={(e) => handleLabelBlur(e.target.value)}
                                         className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:border-blue-500 outline-none"
                                     />
+                                    <datalist id="classes">
+                                        {projectClasses.map(cls => (
+                                            <option key={cls} value={cls} />
+                                        ))}
+                                    </datalist>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 text-xs text-gray-400">
                                     <div>X: {Math.round(selectedAnnotation.x)}</div>
