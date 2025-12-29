@@ -17,7 +17,12 @@ OpenSight is an open-source, web-based image annotation tool designed for comput
     -   Smart Autocomplete for quick labeling.
 -   **🧠 AI Assistant (Auto-Label)**:
     -   Integrated **YOLOv8** model.
+    -   Integrated **YOLOv8** model.
     -   One-click "Magic Wand" to automatically detect and label objects in images.
+-   **🎓 Custom Model Training**:
+    -   Fine-tune YOLO models on your custom datasets directly from the UI.
+    -   Hardware Acceleration (CUDA/MPS) support for fast training.
+    -   Automatically uses your custom model for future predictions after training.
 -   **💾 Auto-Save**: Never lose your work; annotations are saved automatically.
 -   **🐳 Dockerized**: Fully containerized for easy deployment.
 
@@ -62,7 +67,11 @@ OpenSight is an open-source, web-based image annotation tool designed for comput
     -   Press `R` for Rectangle tool.
     -   Press `V` for Select/Edit tool.
     -   Press `H` or Space for Pan tool.
+    -   Press `H` or Space for Pan tool.
 4.  **Auto-Detect**: Click the **✨ Auto Detect** button in the toolbar to let AI start the work for you.
+5.  **Train Model**: Once you have labeled some images, click the **Train Model 🎓** button on the project dashboard.
+    -   The system will train a custom model on your data.
+    -   Subsequent "Auto Detect" requests will use this new, smarter model!
 
 ## 🤝 Contributing
 
