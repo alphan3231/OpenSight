@@ -133,7 +133,6 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                             key={img.id}
                             className="aspect-square bg-gray-900 rounded-lg overflow-hidden border border-gray-800 relative group"
                         >
-                        >
                             <Link href={`/projects/${id}/images/${img.id}`} className="block w-full h-full relative">
                                 <img
                                     src={`http://localhost:8000/static/${id}/images/${img.file_path}`}
