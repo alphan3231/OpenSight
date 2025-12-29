@@ -1,6 +1,8 @@
+import React from "react";
 import { Rect, Text, Group } from "react-konva";
 
 interface BBoxProps {
+    id?: string;
     x: number;
     y: number;
     width: number;
@@ -16,6 +18,7 @@ interface BBoxProps {
 }
 
 export default function BBox({
+    id,
     x,
     y,
     width,
@@ -35,6 +38,7 @@ export default function BBox({
 
     return (
         <Group
+            id={id}
             x={x}
             y={y}
             onClick={onSelect}
@@ -71,5 +75,3 @@ export default function BBox({
         </Group>
     );
 }
-
-import React from "react";
