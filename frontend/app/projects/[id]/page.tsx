@@ -25,6 +25,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
     const [project, setProject] = useState<Project | null>(null);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const [training, setTraining] = useState(false);
 
     const fetchProject = async () => {
         try {
@@ -65,6 +66,30 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         }
     };
 
+    const handleTrainModel = async () => {
+        setTraining(true);
+        alert("Training started! This may take a few minutes. Check backend logs for progress.");
+
+        try {
+            const res = await fetch(`http://localhost:8000/projects/${id}/train`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ epochs: 10 })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(`Training Complete! Model saved at: ${data.model_path}`);
+            } else {
+                alert(`Training Failed: ${data.detail || data.message}`);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error triggering training.");
+        } finally {
+            setTraining(false);
+        }
+    };
+
     if (loading) return <div className="text-white p-8">Loading project...</div>;
     if (!project) return <div className="text-white p-8">Project not found</div>;
 
@@ -81,6 +106,13 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                             <p className="text-gray-400 mt-1">{project.description}</p>
                         </div>
                         <div>
+                            <button
+                                onClick={handleTrainModel}
+                                disabled={training}
+                                className={`mr-4 px-4 py-2 rounded font-medium inline-flex items-center gap-2 ${training ? "bg-purple-900/50 text-purple-300" : "bg-purple-600 hover:bg-purple-500 text-white"}`}
+                            >
+                                {training ? "Training..." : "Train Model 🎓"}
+                            </button>
                             <label className="cursor-pointer bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded font-medium transition-colors inline-flex items-center gap-2">
                                 <span>{uploading ? "Uploading..." : "Upload Image"}</span>
                                 <input
@@ -101,10 +133,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                             key={img.id}
                             className="aspect-square bg-gray-900 rounded-lg overflow-hidden border border-gray-800 relative group"
                         >
-                            {/* Note: We need a way to serve images. For now, assuming direct serve will need setup.
-                  Using a placeholder or assumed invalid URL for now until we serve static files. 
-                  Actually, we need to serve the 'data' folder via FastAPI or Next.js.
-                  Let's assume backend serves them at /static/ or similar, or just show placeholder. */}
+                        >
                             <Link href={`/projects/${id}/images/${img.id}`} className="block w-full h-full relative">
                                 <img
                                     src={`http://localhost:8000/static/${id}/images/${img.file_path}`}
