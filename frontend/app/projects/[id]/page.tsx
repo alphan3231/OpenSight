@@ -18,6 +18,8 @@ interface Project {
     images: Image[];
 }
 
+import { API_URL } from "@/lib/utils";
+
 export default function ProjectDetail({ params }: { params: Promise<{ id: string }> }) {
     // Unwrap params using React.use()
     const { id } = use(params);
@@ -29,7 +31,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
 
     const fetchProject = async () => {
         try {
-            const res = await fetch(`http://localhost:8000/projects/${id}`);
+            const res = await fetch(`${API_URL}/projects/${id}`);
             if (!res.ok) throw new Error("Project not found");
             const data = await res.json();
             setProject(data);
@@ -52,7 +54,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         formData.append("file", e.target.files[0]);
 
         try {
-            const res = await fetch(`http://localhost:8000/projects/${id}/images`, {
+            const res = await fetch(`${API_URL}/projects/${id}/images`, {
                 method: "POST",
                 body: formData,
             });
@@ -71,7 +73,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         alert("Training started! This may take a few minutes. Check backend logs for progress.");
 
         try {
-            const res = await fetch(`http://localhost:8000/projects/${id}/train`, {
+            const res = await fetch(`${API_URL}/projects/${id}/train`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ epochs: 10 })

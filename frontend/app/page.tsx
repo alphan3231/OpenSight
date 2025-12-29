@@ -11,6 +11,8 @@ interface Project {
   created_at: string;
 }
 
+import { API_URL } from "@/lib/utils";
+
 export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [newProjectName, setNewProjectName] = useState("");
@@ -18,7 +20,7 @@ export default function Home() {
 
   const fetchProjects = async () => {
     try {
-      const res = await fetch("http://localhost:8000/projects/");
+      const res = await fetch(`${API_URL}/projects/`);
       const data = await res.json();
       setProjects(data);
     } catch (error) {
@@ -37,7 +39,7 @@ export default function Home() {
     if (!newProjectName) return;
 
     try {
-      const res = await fetch("http://localhost:8000/projects/", {
+      const res = await fetch(`${API_URL}/projects/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newProjectName, description: "New Project" }),

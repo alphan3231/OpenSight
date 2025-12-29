@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeftIcon, ArrowRightIcon, SparklesIcon } from "@heroicons/react/24/solid";
+import { API_URL } from "@/lib/utils";
 
 const AnnotationStage = dynamic(
     () => import("@/components/Canvas/AnnotationStage"),
@@ -60,25 +61,25 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
         const fetchData = async () => {
             try {
                 // Get Project Images for Navigation
-                const res = await fetch(`http://localhost:8000/projects/${id}`);
+                const res = await fetch(`${API_URL}/projects/${id}`);
                 if (res.ok) {
                     const project = await res.json();
                     setProjectImages(project.images);
                     const img = project.images.find((i: any) => i.id === imageId);
                     if (img) {
-                        setImagePath(`http://localhost:8000/static/${id}/images/${img.file_path}`);
+                        setImagePath(`${API_URL}/static/${id}/images/${img.file_path}`);
                     }
                 }
 
                 // Get Existing Annotations
-                const annRes = await fetch(`http://localhost:8000/projects/${id}/images/${imageId}/annotations`);
+                const annRes = await fetch(`${API_URL}/projects/${id}/images/${imageId}/annotations`);
                 if (annRes.ok) {
                     const anns = await annRes.json();
                     setAnnotations(anns);
                 }
 
                 // Get Classes
-                const classRes = await fetch(`http://localhost:8000/projects/${id}/classes`);
+                const classRes = await fetch(`${API_URL}/projects/${id}/classes`);
                 if (classRes.ok) {
                     const data = await classRes.json();
                     setProjectClasses(data.classes || []);
@@ -103,7 +104,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
         const save = async () => {
             setSaving(true);
             try {
-                await fetch(`http://localhost:8000/projects/${id}/images/${imageId}/annotations`, {
+                await fetch(`${API_URL}/projects/${id}/images/${imageId}/annotations`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(debouncedAnnotations),
@@ -121,7 +122,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
     // Save Classes
     const saveClasses = async (newClasses: string[]) => {
         try {
-            await fetch(`http://localhost:8000/projects/${id}/classes`, {
+            await fetch(`${API_URL}/projects/${id}/classes`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ classes: newClasses }),
@@ -136,7 +137,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
     const handleAutoDetect = async () => {
         setDetecting(true);
         try {
-            const res = await fetch(`http://localhost:8000/projects/${id}/images/${imageId}/predict`, {
+            const res = await fetch(`${API_URL}/projects/${id}/images/${imageId}/predict`, {
                 method: "POST"
             });
             if (res.ok) {

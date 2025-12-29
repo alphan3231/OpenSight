@@ -40,6 +40,16 @@ OpenSight is an open-source, web-based image annotation tool designed for comput
 
 -   [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) installed.
 
+### Configuration
+
+You can configure the application using environment variables in `docker-compose.yml`:
+
+-   **Backend**:
+    -   `DATABASE_URL`: PostgreSQL connection string (Required).
+    -   `ALLOWED_ORIGINS`: Comma-separated list of allowed frontend origins (Default: `http://localhost:3000`).
+-   **Frontend**:
+    -   `NEXT_PUBLIC_API_URL`: URL of the backend API (Default: `http://localhost:8000`).
+
 ### Quick Start
 
 1.  **Clone the repository**
