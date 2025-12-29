@@ -13,3 +13,4 @@ verify_system.py
 test_image.jpg
 test_image.png
 backend/yolov8n.pt
+SECURITY_REPORT.md
