@@ -15,6 +15,15 @@ def create_project(db: Session, project: schemas.ProjectCreate):
 def get_project(db: Session, project_id: uuid.UUID):
     return db.query(models.Project).filter(models.Project.id == project_id).first()
 
+def update_project(db: Session, project_id: uuid.UUID, project: schemas.ProjectCreate):
+    db_project = get_project(db, project_id)
+    if db_project:
+        db_project.name = project.name
+        db_project.description = project.description
+        db.commit()
+        db.refresh(db_project)
+    return db_project
+
 def create_image(db: Session, image: schemas.ImageCreate, project_id: uuid.UUID, file_path: str):
     db_image = models.Image(
         project_id=project_id,
