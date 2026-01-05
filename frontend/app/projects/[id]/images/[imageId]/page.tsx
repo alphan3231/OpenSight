@@ -4,13 +4,15 @@ import { useState, use, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeftIcon, ArrowRightIcon, SparklesIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, ArrowRightIcon, SparklesIcon, QuestionMarkCircleIcon } from "@heroicons/react/24/solid";
 import { API_URL } from "@/lib/utils";
 
 const AnnotationStage = dynamic(
     () => import("@/components/Canvas/AnnotationStage"),
     { ssr: false }
 );
+
+import ShortcutsModal from "@/components/Modals/ShortcutsModal";
 
 interface Annotation {
     id: string;
@@ -49,6 +51,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
     const [annotations, setAnnotations] = useState<Annotation[]>([]);
     const [imagePath, setImagePath] = useState<string>("");
     const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [showShortcuts, setShowShortcuts] = useState(false);
 
     const [projectImages, setProjectImages] = useState<Image[]>([]);
     const [projectClasses, setProjectClasses] = useState<string[]>([]);
@@ -171,6 +174,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
             if (e.key.toLowerCase() === "v") setTool("select");
             if (e.key.toLowerCase() === "r") setTool("rect");
             if (e.key.toLowerCase() === "h") setTool("pan");
+            if (e.key === "?") setShowShortcuts(prev => !prev);
         };
 
         window.addEventListener("keydown", handleKeyDown);
@@ -242,6 +246,16 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                     >
                         <SparklesIcon className="w-3 h-3" />
                         {detecting ? "Detecting..." : "Auto Detect"}
+                    </button>
+                </div>
+
+                <div className="flex items-center gap-2 bg-gray-800 rounded p-1 ml-4">
+                    <button
+                        onClick={() => setShowShortcuts(true)}
+                        className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+                        title="Shortcuts (?)"
+                    >
+                        <QuestionMarkCircleIcon className="w-5 h-5" />
                     </button>
                 </div>
 
@@ -335,6 +349,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                     </div>
                 </div>
             </div>
+            <ShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
         </main>
     );
 }
