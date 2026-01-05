@@ -158,6 +158,17 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
     };
 
 
+    // Export Logic
+    const handleExport = () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(annotations, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `annotations_${imageId}.json`);
+        document.body.appendChild(downloadAnchorNode); // required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    };
+
     // Navigation Logic
     const currentIndex = projectImages.findIndex(img => img.id === imageId);
     const prevImageId = currentIndex > 0 ? projectImages[currentIndex - 1].id : null;
@@ -259,6 +270,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                     </button>
                     <div className="w-px h-4 bg-gray-700 mx-2"></div>
                     <button
+                        onClick={handleExport}
                         className="px-3 py-1 text-xs rounded bg-gray-700 text-gray-300 hover:text-white flex items-center gap-2"
                         title="Export JSON"
                     >
