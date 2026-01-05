@@ -4,7 +4,7 @@ import { useState, use, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeftIcon, ArrowRightIcon, SparklesIcon, QuestionMarkCircleIcon, ArrowPathIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, ArrowRightIcon, SparklesIcon, QuestionMarkCircleIcon, ArrowPathIcon, ArrowDownTrayIcon } from "@heroicons/react/24/solid";
 import { API_URL } from "@/lib/utils";
 
 const AnnotationStage = dynamic(
@@ -256,6 +256,14 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                     >
                         <SparklesIcon className="w-3 h-3" />
                         {detecting ? "Detecting..." : "Auto Detect"}
+                    </button>
+                    <div className="w-px h-4 bg-gray-700 mx-2"></div>
+                    <button
+                        className="px-3 py-1 text-xs rounded bg-gray-700 text-gray-300 hover:text-white flex items-center gap-2"
+                        title="Export JSON"
+                    >
+                        <ArrowDownTrayIcon className="w-3 h-3" />
+                        Export
                     </button>
                 </div>
 
