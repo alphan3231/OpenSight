@@ -53,6 +53,8 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [showShortcuts, setShowShortcuts] = useState(false);
     const [rotation, setRotation] = useState(0);
+    const [brightness, setBrightness] = useState(0);
+    const [contrast, setContrast] = useState(0);
 
     const [projectImages, setProjectImages] = useState<Image[]>([]);
     const [projectClasses, setProjectClasses] = useState<string[]>([]);
@@ -289,8 +291,11 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                             onAnnotationsChange={setAnnotations}
                             onSelectAnnotation={setSelectedId}
                             selectedId={selectedId}
+                            selectedId={selectedId}
                             tool={tool}
                             rotation={rotation}
+                            brightness={brightness}
+                            contrast={contrast}
                         />
                     )}
                 </div>
@@ -331,8 +336,42 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                                 </button>
                             </div>
                         ) : (
-                            <div className="text-gray-600 text-sm text-center py-4">
-                                Select an object to edit
+                            <div className="space-y-4">
+                                <div className="text-gray-500 text-xs font-bold uppercase mb-2">Image Adjustments</div>
+                                <div>
+                                    <label className="text-xs text-gray-400 flex justify-between">
+                                        Brightness <span>{brightness.toFixed(1)}</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="-1"
+                                        max="1"
+                                        step="0.1"
+                                        value={brightness}
+                                        onChange={(e) => setBrightness(parseFloat(e.target.value))}
+                                        className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-400 flex justify-between">
+                                        Contrast <span>{contrast}</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="-100"
+                                        max="100"
+                                        step="5"
+                                        value={contrast}
+                                        onChange={(e) => setContrast(parseInt(e.target.value))}
+                                        className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                </div>
+                                <button
+                                    onClick={() => { setBrightness(0); setContrast(0); setRotation(0); }}
+                                    className="text-xs text-blue-400 hover:text-blue-300 w-full text-center mt-2"
+                                >
+                                    Reset Adjustments
+                                </button>
                             </div>
                         )}
                     </div>
