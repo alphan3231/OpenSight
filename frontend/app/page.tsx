@@ -16,6 +16,7 @@ import { API_URL } from "@/lib/utils";
 export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectDesc, setNewProjectDesc] = useState("");
   const [loading, setLoading] = useState(true);
 
   const fetchProjects = async () => {
@@ -42,10 +43,11 @@ export default function Home() {
       const res = await fetch(`${API_URL}/projects/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newProjectName, description: "New Project" }),
+        body: JSON.stringify({ name: newProjectName, description: newProjectDesc }),
       });
       if (res.ok) {
         setNewProjectName("");
+        setNewProjectDesc("");
         fetchProjects();
       }
     } catch (error) {
@@ -69,6 +71,13 @@ export default function Home() {
               placeholder="New Project Name"
               value={newProjectName}
               onChange={(e) => setNewProjectName(e.target.value)}
+              className="bg-gray-900 border border-gray-800 rounded px-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+            />
+            <input
+              type="text"
+              placeholder="Description (optional)"
+              value={newProjectDesc}
+              onChange={(e) => setNewProjectDesc(e.target.value)}
               className="bg-gray-900 border border-gray-800 rounded px-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
             />
             <button
