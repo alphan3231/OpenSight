@@ -4,7 +4,7 @@ import { useState, use, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeftIcon, ArrowRightIcon, SparklesIcon, QuestionMarkCircleIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, ArrowRightIcon, SparklesIcon, QuestionMarkCircleIcon, ArrowPathIcon } from "@heroicons/react/24/solid";
 import { API_URL } from "@/lib/utils";
 
 const AnnotationStage = dynamic(
@@ -52,6 +52,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
     const [imagePath, setImagePath] = useState<string>("");
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [showShortcuts, setShowShortcuts] = useState(false);
+    const [rotation, setRotation] = useState(0);
 
     const [projectImages, setProjectImages] = useState<Image[]>([]);
     const [projectClasses, setProjectClasses] = useState<string[]>([]);
@@ -239,6 +240,13 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                     <button onClick={() => setTool("pan")} className={`px-3 py-1 text-xs rounded ${tool === "pan" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Pan (H)</button>
                     <button onClick={() => setTool("rect")} className={`px-3 py-1 text-xs rounded ${tool === "rect" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Rectangle (R)</button>
                     <div className="w-px h-4 bg-gray-700 mx-2"></div>
+                    <button onClick={() => setRotation(r => r - 90)} className="px-2 py-1 text-xs rounded text-gray-400 hover:text-white" title="Rotate Left">
+                        <ArrowPathIcon className="w-4 h-4 -scale-x-100" />
+                    </button>
+                    <button onClick={() => setRotation(r => r + 90)} className="px-2 py-1 text-xs rounded text-gray-400 hover:text-white" title="Rotate Right">
+                        <ArrowPathIcon className="w-4 h-4" />
+                    </button>
+                    <div className="w-px h-4 bg-gray-700 mx-2"></div>
                     <button
                         onClick={handleAutoDetect}
                         disabled={detecting}
@@ -282,6 +290,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                             onSelectAnnotation={setSelectedId}
                             selectedId={selectedId}
                             tool={tool}
+                            rotation={rotation}
                         />
                     )}
                 </div>

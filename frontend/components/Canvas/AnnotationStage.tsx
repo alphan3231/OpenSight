@@ -1,6 +1,6 @@
 "use client";
 
-import { Stage, Layer, Transformer } from "react-konva";
+import { Stage, Layer, Transformer, Group } from "react-konva";
 import { useState, useRef, useEffect, useCallback } from "react";
 import URLImage from "./URLImage";
 import BBox from "./BBox";
@@ -20,8 +20,11 @@ interface AnnotationStageProps {
     onAnnotationsChange: (annotations: Annotation[]) => void;
     onSelectAnnotation: (id: string | null) => void;
     selectedId: string | null;
+
     tool: "select" | "rect" | "pan";
+    rotation: number;
 }
+
 
 export default function AnnotationStage({
     imageSrc,
@@ -30,8 +33,10 @@ export default function AnnotationStage({
     onSelectAnnotation,
     selectedId,
     tool,
+    rotation,
 }: AnnotationStageProps) {
     const stageRef = useRef<any>(null);
+    const groupRef = useRef<any>(null);
     const transformerRef = useRef<any>(null);
     const [scale, setScale] = useState(1);
     const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -114,9 +119,10 @@ export default function AnnotationStage({
             onSelectAnnotation(null);
 
             const stage = e.target.getStage();
-            // Get pointer relative to image (accounting for zoom/pan)
-            // We need to transform pointer position to layer space
-            const transform = stage.getLayers()[0].getAbsoluteTransform().copy();
+            // Get pointer relative to image (accounting for zoom/pan AND rotation)
+            // We use the group's transform
+            const group = groupRef.current;
+            const transform = group.getAbsoluteTransform().copy();
             transform.invert();
             const pos = transform.point(stage.getPointerPosition());
 
@@ -134,7 +140,8 @@ export default function AnnotationStage({
     const handleMouseMove = (e: any) => {
         if (!newAnnotation) return;
         const stage = e.target.getStage();
-        const transform = stage.getLayers()[0].getAbsoluteTransform().copy();
+        const group = groupRef.current;
+        const transform = group.getAbsoluteTransform().copy();
         transform.invert();
         const pos = transform.point(stage.getPointerPosition());
 
@@ -204,57 +211,74 @@ export default function AnnotationStage({
                 ref={stageRef}
                 className={tool === "pan" ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair"}
             >
+
                 <Layer>
-                    <URLImage
-                        src={imageSrc}
-                        onImageLoad={handleImageLoad}
-                    />
-
-                    {annotations.map((ann) => (
-                        <BBox
-                            key={ann.id}
-                            {...ann}
-                            id={ann.id} // Important for transformer search
-                            isSelected={ann.id === selectedId}
-                            scale={scale}
-                            onSelect={() => {
-                                if (tool === 'select') onSelectAnnotation(ann.id);
-                            }}
-                            draggable={tool === 'select'}
-                            onDragEnd={(e: any) => {
-                                const node = e.target;
-                                const newAnns = annotations.map(a =>
-                                    a.id === ann.id ? { ...a, x: node.x(), y: node.y() } : a
-                                );
-                                onAnnotationsChange(newAnns);
-                            }}
-                            onTransformEnd={handleTransformEnd}
+                    <Group
+                        ref={groupRef}
+                        rotation={rotation}
+                        x={
+                            (rotation % 360 + 360) % 360 === 90 ? imageSize.height :
+                                (rotation % 360 + 360) % 360 === 180 ? imageSize.width :
+                                    (rotation % 360 + 360) % 360 === 270 ? 0 : 0
+                        }
+                        y={
+                            (rotation % 360 + 360) % 360 === 90 ? 0 :
+                                (rotation % 360 + 360) % 360 === 180 ? imageSize.height :
+                                    (rotation % 360 + 360) % 360 === 270 ? imageSize.width : 0
+                        }
+                    >
+                        <URLImage
+                            src={imageSrc}
+                            onImageLoad={handleImageLoad}
                         />
-                    ))}
 
-                    {newAnnotation && (
-                        <BBox
-                            {...newAnnotation}
-                            x={newAnnotation.width < 0 ? newAnnotation.x + newAnnotation.width : newAnnotation.x}
-                            y={newAnnotation.height < 0 ? newAnnotation.y + newAnnotation.height : newAnnotation.y}
-                            width={Math.abs(newAnnotation.width)}
-                            height={Math.abs(newAnnotation.height)}
-                            color="#FFFF00"
+                        {annotations.map((ann) => (
+                            <BBox
+                                key={ann.id}
+                                {...ann}
+                                id={ann.id} // Important for transformer search
+                                isSelected={ann.id === selectedId}
+                                scale={scale}
+                                onSelect={() => {
+                                    if (tool === 'select') onSelectAnnotation(ann.id);
+                                }}
+                                draggable={tool === 'select'}
+                                onDragEnd={(e: any) => {
+                                    const node = e.target;
+                                    const newAnns = annotations.map(a =>
+                                        a.id === ann.id ? { ...a, x: node.x(), y: node.y() } : a
+                                    );
+                                    onAnnotationsChange(newAnns);
+                                }}
+                                onTransformEnd={handleTransformEnd}
+                            />
+                        ))}
+
+                        {newAnnotation && (
+                            <BBox
+                                {...newAnnotation}
+                                x={newAnnotation.width < 0 ? newAnnotation.x + newAnnotation.width : newAnnotation.x}
+                                y={newAnnotation.height < 0 ? newAnnotation.y + newAnnotation.height : newAnnotation.y}
+                                width={Math.abs(newAnnotation.width)}
+                                height={Math.abs(newAnnotation.height)}
+                                color="#FFFF00"
+                            />
+                        )}
+
+                        <Transformer
+                            ref={transformerRef}
+                            boundBoxFunc={(oldBox, newBox) => {
+                                // Limit resize
+                                if (newBox.width < 5 || newBox.height < 5) {
+                                    return oldBox;
+                                }
+                                return newBox;
+                            }}
                         />
-                    )}
-
-                    <Transformer
-                        ref={transformerRef}
-                        boundBoxFunc={(oldBox, newBox) => {
-                            // Limit resize
-                            if (newBox.width < 5 || newBox.height < 5) {
-                                return oldBox;
-                            }
-                            return newBox;
-                        }}
-                    />
+                    </Group>
                 </Layer>
             </Stage>
+
 
             <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded pointer-events-none">
                 Scale: {scale.toFixed(2)}x
