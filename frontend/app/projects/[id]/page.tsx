@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { PencilSquareIcon, CheckIcon, XMarkIcon } from "@heroicons/react/24/solid";
 
 interface Image {
     id: string;
@@ -27,7 +27,11 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
     const [project, setProject] = useState<Project | null>(null);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
+
     const [training, setTraining] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editName, setEditName] = useState("");
+    const [editDesc, setEditDesc] = useState("");
 
     const fetchProject = async () => {
         try {
@@ -35,6 +39,8 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
             if (!res.ok) throw new Error("Project not found");
             const data = await res.json();
             setProject(data);
+            setEditName(data.name);
+            setEditDesc(data.description || "");
         } catch (error) {
             console.error(error);
         } finally {
@@ -92,6 +98,23 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         }
     };
 
+    const handleUpdateProject = async () => {
+        try {
+            const res = await fetch(`${API_URL}/projects/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: editName, description: editDesc }),
+            });
+            if (res.ok) {
+                const updated = await res.json();
+                setProject(updated);
+                setIsEditing(false);
+            }
+        } catch (e) {
+            console.error("Update failed", e);
+        }
+    };
+
     if (loading) return <div className="text-white p-8">Loading project...</div>;
     if (!project) return <div className="text-white p-8">Project not found</div>;
 
@@ -104,8 +127,41 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                     </Link>
                     <div className="flex justify-between items-end">
                         <div>
-                            <h1 className="text-3xl font-bold">{project.name}</h1>
-                            <p className="text-gray-400 mt-1">{project.description}</p>
+                            {isEditing ? (
+                                <div className="space-y-2">
+                                    <input
+                                        type="text"
+                                        value={editName}
+                                        onChange={(e) => setEditName(e.target.value)}
+                                        className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-2xl font-bold w-full"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={editDesc}
+                                        onChange={(e) => setEditDesc(e.target.value)}
+                                        className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-gray-400 w-full"
+                                        placeholder="Description..."
+                                    />
+                                    <div className="flex gap-2">
+                                        <button onClick={handleUpdateProject} className="bg-green-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1 hover:bg-green-500">
+                                            <CheckIcon className="w-4 h-4" /> Save
+                                        </button>
+                                        <button onClick={() => setIsEditing(false)} className="bg-gray-700 text-white px-3 py-1 rounded text-sm flex items-center gap-1 hover:bg-gray-600">
+                                            <XMarkIcon className="w-4 h-4" /> Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="group">
+                                    <h1 className="text-3xl font-bold flex items-center gap-2">
+                                        {project.name}
+                                        <button onClick={() => setIsEditing(true)} className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-white">
+                                            <PencilSquareIcon className="w-5 h-5" />
+                                        </button>
+                                    </h1>
+                                    <p className="text-gray-400 mt-1">{project.description}</p>
+                                </div>
+                            )}
                         </div>
                         <div>
                             <button
