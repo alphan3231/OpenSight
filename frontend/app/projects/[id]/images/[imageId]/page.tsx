@@ -291,7 +291,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                             onAnnotationsChange={setAnnotations}
                             onSelectAnnotation={setSelectedId}
                             selectedId={selectedId}
-                            selectedId={selectedId}
+
                             tool={tool}
                             rotation={rotation}
                             brightness={brightness}

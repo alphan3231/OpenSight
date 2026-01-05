@@ -23,6 +23,8 @@ interface AnnotationStageProps {
 
     tool: "select" | "rect" | "pan";
     rotation: number;
+    brightness: number;
+    contrast: number;
 }
 
 
@@ -32,8 +34,11 @@ export default function AnnotationStage({
     onAnnotationsChange,
     onSelectAnnotation,
     selectedId,
+
     tool,
     rotation,
+    brightness,
+    contrast,
 }: AnnotationStageProps) {
     const stageRef = useRef<any>(null);
     const groupRef = useRef<any>(null);
@@ -230,6 +235,8 @@ export default function AnnotationStage({
                         <URLImage
                             src={imageSrc}
                             onImageLoad={handleImageLoad}
+                            brightness={brightness}
+                            contrast={contrast}
                         />
 
                         {annotations.map((ann) => (
