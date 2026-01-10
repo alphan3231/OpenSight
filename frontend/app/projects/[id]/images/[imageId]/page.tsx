@@ -214,10 +214,6 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
         ));
     };
 
-    return { ...ann, locked: !ann.locked };
-}
-return ann;
-    }));
 };
 
 const handleLabelBlur = (label: string) => {
