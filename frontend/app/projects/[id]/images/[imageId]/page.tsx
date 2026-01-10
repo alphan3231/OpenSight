@@ -214,6 +214,16 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
         ));
     };
 
+    const toggleLock = () => {
+        if (!selectedId) return;
+        setAnnotations(annotations.map(ann => {
+            if (ann.id === selectedId) {
+                return { ...ann, locked: !ann.locked };
+            }
+            return ann;
+        }));
+    };
+
 };
 
 const handleLabelBlur = (label: string) => {
