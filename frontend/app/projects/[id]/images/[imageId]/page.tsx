@@ -4,7 +4,7 @@ import { useState, use, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeftIcon, ArrowRightIcon, SparklesIcon, QuestionMarkCircleIcon, ArrowPathIcon, ArrowDownTrayIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, ArrowRightIcon, SparklesIcon, QuestionMarkCircleIcon, ArrowPathIcon, ArrowDownTrayIcon, ViewColumnsIcon } from "@heroicons/react/24/solid";
 import { API_URL } from "@/lib/utils";
 
 const AnnotationStage = dynamic(
@@ -55,6 +55,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
     const [rotation, setRotation] = useState(0);
     const [brightness, setBrightness] = useState(0);
     const [contrast, setContrast] = useState(0);
+    const [showGrid, setShowGrid] = useState(false);
 
     const [projectImages, setProjectImages] = useState<Image[]>([]);
     const [projectClasses, setProjectClasses] = useState<string[]>([]);
@@ -258,6 +259,14 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                     </button>
                     <button onClick={() => setRotation(r => r + 90)} className="px-2 py-1 text-xs rounded text-gray-400 hover:text-white" title="Rotate Right">
                         <ArrowPathIcon className="w-4 h-4" />
+                    </button>
+                    <div className="w-px h-4 bg-gray-700 mx-2"></div>
+                    <button
+                        onClick={() => setShowGrid(prev => !prev)}
+                        className={`px-2 py-1 text-xs rounded flex items-center gap-1 ${showGrid ? "bg-blue-900/50 text-blue-300" : "text-gray-400 hover:text-white"}`}
+                        title="Toggle Grid"
+                    >
+                        <ViewColumnsIcon className="w-4 h-4" />
                     </button>
                     <div className="w-px h-4 bg-gray-700 mx-2"></div>
                     <button
