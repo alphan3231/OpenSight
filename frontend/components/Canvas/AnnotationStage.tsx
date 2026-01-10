@@ -4,6 +4,7 @@ import { Stage, Layer, Transformer, Group } from "react-konva";
 import { useState, useRef, useEffect, useCallback } from "react";
 import URLImage from "./URLImage";
 import BBox from "./BBox";
+import GridOverlay from "./GridOverlay";
 
 interface Annotation {
     id: string;
@@ -25,6 +26,7 @@ interface AnnotationStageProps {
     rotation: number;
     brightness: number;
     contrast: number;
+    showGrid: boolean;
 }
 
 
@@ -39,6 +41,7 @@ export default function AnnotationStage({
     rotation,
     brightness,
     contrast,
+    showGrid,
 }: AnnotationStageProps) {
     const stageRef = useRef<any>(null);
     const groupRef = useRef<any>(null);
@@ -238,6 +241,14 @@ export default function AnnotationStage({
                             brightness={brightness}
                             contrast={contrast}
                         />
+
+                        {imageSize.width > 0 && (
+                            <GridOverlay
+                                width={imageSize.width}
+                                height={imageSize.height}
+                                visible={showGrid}
+                            />
+                        )}
 
                         {annotations.map((ann) => (
                             <BBox

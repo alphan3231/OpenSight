@@ -325,6 +325,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                             rotation={rotation}
                             brightness={brightness}
                             contrast={contrast}
+                            showGrid={showGrid}
                         />
                     )}
                 </div>
