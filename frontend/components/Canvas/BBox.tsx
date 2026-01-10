@@ -15,6 +15,7 @@ interface BBoxProps {
     draggable?: boolean;
     onDragEnd?: (e: any) => void;
     onTransformEnd?: (e: any) => void;
+    locked?: boolean; // Added locked prop
 }
 
 export default function BBox({
@@ -30,11 +31,12 @@ export default function BBox({
     onSelect,
     draggable,
     onDragEnd,
-    onTransformEnd
+    onTransformEnd,
+    locked = false, // Added locked prop with default value
 }: BBoxProps) {
     const fontSize = 14 / scale;
     const padding = 4 / scale;
-    const strokeWidth = (isSelected ? 3 : 2) / scale;
+    // const strokeWidth = (isSelected ? 3 : 2) / scale; // Original line, now replaced by fixed 2/scale
 
     return (
         <Group
@@ -43,16 +45,20 @@ export default function BBox({
             y={y}
             onClick={onSelect}
             onTap={onSelect}
-            draggable={draggable}
+            draggable={draggable && !locked} // Disable drag if locked
             onDragEnd={onDragEnd}
-            onTransformEnd={onTransformEnd}
+            onTransformEnd={onTransformEnd} // Keep onTransformEnd
         >
             <Rect
                 width={width}
                 height={height}
                 stroke={color}
-                strokeWidth={strokeWidth}
+                strokeWidth={2 / scale} // Changed strokeWidth to fixed value
                 fill={isSelected ? `${color}33` : "transparent"} // Transparent fill normally, light color when selected
+                shadowColor="black" // Added shadow props
+                shadowBlur={2}
+                shadowOpacity={0.3}
+                dash={locked ? [4, 4] : undefined} // Visual indicator for locked
             />
             {label && (
                 <React.Fragment>
