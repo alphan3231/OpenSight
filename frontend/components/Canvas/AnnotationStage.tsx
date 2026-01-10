@@ -25,8 +25,11 @@ interface AnnotationStageProps {
     tool: "select" | "rect" | "pan";
     rotation: number;
     brightness: number;
+
     contrast: number;
     showGrid: boolean;
+    scale: number;
+    onScaleChange: (scale: number) => void;
 }
 
 
@@ -42,11 +45,13 @@ export default function AnnotationStage({
     brightness,
     contrast,
     showGrid,
+    scale,
+    onScaleChange,
 }: AnnotationStageProps) {
     const stageRef = useRef<any>(null);
     const groupRef = useRef<any>(null);
     const transformerRef = useRef<any>(null);
-    const [scale, setScale] = useState(1);
+    // Removed internal scale state
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [newAnnotation, setNewAnnotation] = useState<Annotation | null>(null);
     const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
@@ -61,8 +66,7 @@ export default function AnnotationStage({
         const scaleW = containerW / w;
         const scaleH = containerH / h;
         const fitScale = Math.min(scaleW, scaleH, 1); // Don't zoom in if image is small
-
-        setScale(fitScale);
+        onScaleChange(fitScale);
         // Center it
         setPosition({
             x: (containerW - w * fitScale) / 2,
@@ -93,7 +97,7 @@ export default function AnnotationStage({
         };
 
         const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
-        setScale(newScale);
+        onScaleChange(newScale);
         setPosition({
             x: -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale,
             y: -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
