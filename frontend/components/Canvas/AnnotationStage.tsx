@@ -12,7 +12,7 @@ interface Annotation {
     y: number;
     width: number;
     height: number;
-    height: number;
+
     label: string;
     locked?: boolean;
 }
