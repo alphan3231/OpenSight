@@ -263,6 +263,9 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                     <button onClick={() => setScale(s => s / 1.1)} className="p-1 text-gray-400 hover:text-white" title="Zoom Out">
                         <MagnifyingGlassMinusIcon className="w-4 h-4" />
                     </button>
+                    <button onClick={() => setScale(1)} className="p-1 text-gray-400 hover:text-white" title="Fit to Screen">
+                        <ArrowsPointingOutIcon className="w-4 h-4" />
+                    </button>
                     <div className="w-px h-4 bg-gray-700 mx-2"></div>
                     <button onClick={() => setTool("select")} className={`px-3 py-1 text-xs rounded ${tool === "select" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Select (V)</button>
                     <button onClick={() => setTool("pan")} className={`px-3 py-1 text-xs rounded ${tool === "pan" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Pan (H)</button>
