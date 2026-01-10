@@ -6,9 +6,10 @@ interface GridOverlayProps {
     height: number;
     gridSize?: number;
     visible?: boolean;
+    color?: string;
 }
 
-const GridOverlay: React.FC<GridOverlayProps> = ({ width, height, gridSize = 50, visible = false }) => {
+const GridOverlay: React.FC<GridOverlayProps> = ({ width, height, gridSize = 50, visible = false, color = "rgba(255, 255, 255, 0.2)" }) => {
     if (!visible) return null;
 
     const lines = [];
@@ -19,7 +20,7 @@ const GridOverlay: React.FC<GridOverlayProps> = ({ width, height, gridSize = 50,
             <Line
                 key={`v-${i}`}
                 points={[i, 0, i, height]}
-                stroke="rgba(255, 255, 255, 0.2)"
+                stroke={color}
                 strokeWidth={1}
                 listening={false} // Don't intercept events
             />
@@ -32,7 +33,7 @@ const GridOverlay: React.FC<GridOverlayProps> = ({ width, height, gridSize = 50,
             <Line
                 key={`h-${i}`}
                 points={[0, i, width, i]}
-                stroke="rgba(255, 255, 255, 0.2)"
+                stroke={color}
                 strokeWidth={1}
                 listening={false}
             />
