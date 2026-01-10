@@ -298,6 +298,9 @@ export default function AnnotationStage({
                                 }
                                 return newBox;
                             }}
+                            resizeEnabled={!annotations.find(a => a.id === selectedId)?.locked}
+                            rotateEnabled={!annotations.find(a => a.id === selectedId)?.locked}
+                            enabledAnchors={annotations.find(a => a.id === selectedId)?.locked ? [] : ['top-left', 'top-center', 'top-right', 'middle-right', 'middle-left', 'bottom-left', 'bottom-center', 'bottom-right']}
                         />
                     </Group>
                 </Layer>
