@@ -364,6 +364,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                             brightness={brightness}
                             contrast={contrast}
                             showGrid={showGrid}
+                            bgMode={bgMode}
                         />
                     )}
                 </div>

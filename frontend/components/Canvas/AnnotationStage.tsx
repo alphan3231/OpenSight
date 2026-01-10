@@ -32,6 +32,7 @@ interface AnnotationStageProps {
     showGrid: boolean;
     scale: number;
     onScaleChange: (scale: number) => void;
+    bgMode?: "dark" | "light"; // Added bgMode
 }
 
 
@@ -49,6 +50,7 @@ export default function AnnotationStage({
     showGrid,
     scale,
     onScaleChange,
+    bgMode = "dark",
 }: AnnotationStageProps) {
     const stageRef = useRef<any>(null);
     const groupRef = useRef<any>(null);
@@ -253,6 +255,7 @@ export default function AnnotationStage({
                                 width={imageSize.width}
                                 height={imageSize.height}
                                 visible={showGrid}
+                                color={bgMode === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)"}
                             />
                         )}
 
