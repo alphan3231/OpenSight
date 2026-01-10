@@ -4,7 +4,7 @@ import { useState, use, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeftIcon, ArrowRightIcon, SparklesIcon, QuestionMarkCircleIcon, ArrowPathIcon, ArrowDownTrayIcon, ViewColumnsIcon, MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon, ArrowsPointingOutIcon, LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, ArrowRightIcon, SparklesIcon, QuestionMarkCircleIcon, ArrowPathIcon, ArrowDownTrayIcon, ViewColumnsIcon, MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon, ArrowsPointingOutIcon, LockClosedIcon, LockOpenIcon, SunIcon, MoonIcon } from "@heroicons/react/24/solid";
 import { API_URL } from "@/lib/utils";
 
 const AnnotationStage = dynamic(
@@ -65,6 +65,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
     // Let's implement Zoom handlers here and pass them or just pass a "zoomAction" prop?
     // Better: Lift scale state to Page.
     const [scale, setScale] = useState(1);
+    const [bgMode, setBgMode] = useState<"dark" | "light">("dark");
 
     const [projectImages, setProjectImages] = useState<Image[]>([]);
     const [projectClasses, setProjectClasses] = useState<string[]>([]);
@@ -281,6 +282,10 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                         <ArrowsPointingOutIcon className="w-4 h-4" />
                     </button>
                     <div className="w-px h-4 bg-gray-700 mx-2"></div>
+                    <button onClick={() => setBgMode(m => m === "dark" ? "light" : "dark")} className="p-1 text-gray-400 hover:text-white" title="Toggle Background">
+                        {bgMode === "dark" ? <SunIcon className="w-4 h-4" /> : <MoonIcon className="w-4 h-4" />}
+                    </button>
+                    <div className="w-px h-4 bg-gray-700 mx-2"></div>
                     <button onClick={() => setTool("select")} className={`px-3 py-1 text-xs rounded ${tool === "select" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Select (V)</button>
                     <button onClick={() => setTool("pan")} className={`px-3 py-1 text-xs rounded ${tool === "pan" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Pan (H)</button>
                     <button onClick={() => setTool("rect")} className={`px-3 py-1 text-xs rounded ${tool === "rect" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Rectangle (R)</button>
@@ -343,7 +348,7 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 {/* Canvas */}
-                <div className="flex-1 bg-black relative flex items-center justify-center overflow-hidden">
+                <div className={`flex-1 relative flex items-center justify-center overflow-hidden transition-colors duration-300 ${bgMode === "dark" ? "bg-black" : "bg-gray-200"}`}>
                     {imagePath && (
                         <AnnotationStage
                             imageSrc={imagePath}
