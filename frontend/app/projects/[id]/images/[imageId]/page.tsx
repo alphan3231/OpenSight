@@ -224,257 +224,257 @@ export default function AnnotationPage({ params }: { params: Promise<{ id: strin
         }));
     };
 
-};
 
-const handleLabelBlur = (label: string) => {
-    if (label && !projectClasses.includes(label)) {
-        const newClasses = [...projectClasses, label];
-        saveClasses(newClasses);
-    }
-};
 
-const handleDelete = () => {
-    if (!selectedId) return;
-    setAnnotations(annotations.filter(ann => ann.id !== selectedId));
-    setSelectedId(null);
-};
+    const handleLabelBlur = (label: string) => {
+        if (label && !projectClasses.includes(label)) {
+            const newClasses = [...projectClasses, label];
+            saveClasses(newClasses);
+        }
+    };
 
-const selectedAnnotation = annotations.find(a => a.id === selectedId);
+    const handleDelete = () => {
+        if (!selectedId) return;
+        setAnnotations(annotations.filter(ann => ann.id !== selectedId));
+        setSelectedId(null);
+    };
 
-return (
-    <main className="h-screen flex flex-col bg-gray-950 text-white overflow-hidden">
-        {/* Header */}
-        <header className="h-14 border-b border-gray-800 flex items-center px-4 justify-between bg-gray-900 z-10">
-            <div className="flex items-center gap-4">
-                <Link href={`/projects/${id}`} className="text-gray-400 hover:text-white transition-colors">
-                    ← Back
-                </Link>
-                <div className="flex items-center gap-2">
-                    <button
-                        disabled={!prevImageId}
-                        onClick={() => prevImageId && goToImage(prevImageId)}
-                        className="p-1 hover:bg-gray-800 rounded disabled:opacity-30"
-                    >
-                        <ArrowLeftIcon className="w-4 h-4" />
+    const selectedAnnotation = annotations.find(a => a.id === selectedId);
+
+    return (
+        <main className="h-screen flex flex-col bg-gray-950 text-white overflow-hidden">
+            {/* Header */}
+            <header className="h-14 border-b border-gray-800 flex items-center px-4 justify-between bg-gray-900 z-10">
+                <div className="flex items-center gap-4">
+                    <Link href={`/projects/${id}`} className="text-gray-400 hover:text-white transition-colors">
+                        ← Back
+                    </Link>
+                    <div className="flex items-center gap-2">
+                        <button
+                            disabled={!prevImageId}
+                            onClick={() => prevImageId && goToImage(prevImageId)}
+                            className="p-1 hover:bg-gray-800 rounded disabled:opacity-30"
+                        >
+                            <ArrowLeftIcon className="w-4 h-4" />
+                        </button>
+                        <span className="text-xs text-gray-500">
+                            {currentIndex + 1} / {projectImages.length}
+                        </span>
+                        <button
+                            disabled={!nextImageId}
+                            onClick={() => nextImageId && goToImage(nextImageId)}
+                            className="p-1 hover:bg-gray-800 rounded disabled:opacity-30"
+                        >
+                            <ArrowRightIcon className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 bg-gray-800 rounded p-1">
+                    <button onClick={() => setScale(s => s * 1.1)} className="p-1 text-gray-400 hover:text-white" title="Zoom In">
+                        <MagnifyingGlassPlusIcon className="w-4 h-4" />
                     </button>
-                    <span className="text-xs text-gray-500">
-                        {currentIndex + 1} / {projectImages.length}
-                    </span>
+                    <button onClick={() => setScale(s => s / 1.1)} className="p-1 text-gray-400 hover:text-white" title="Zoom Out">
+                        <MagnifyingGlassMinusIcon className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => setScale(1)} className="p-1 text-gray-400 hover:text-white" title="Fit to Screen">
+                        <ArrowsPointingOutIcon className="w-4 h-4" />
+                    </button>
+                    <div className="w-px h-4 bg-gray-700 mx-2"></div>
+                    <button onClick={() => setTool("select")} className={`px-3 py-1 text-xs rounded ${tool === "select" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Select (V)</button>
+                    <button onClick={() => setTool("pan")} className={`px-3 py-1 text-xs rounded ${tool === "pan" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Pan (H)</button>
+                    <button onClick={() => setTool("rect")} className={`px-3 py-1 text-xs rounded ${tool === "rect" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Rectangle (R)</button>
+                    <div className="w-px h-4 bg-gray-700 mx-2"></div>
+                    <button onClick={() => setRotation(r => r - 90)} className="px-2 py-1 text-xs rounded text-gray-400 hover:text-white" title="Rotate Left">
+                        <ArrowPathIcon className="w-4 h-4 -scale-x-100" />
+                    </button>
+                    <button onClick={() => setRotation(r => r + 90)} className="px-2 py-1 text-xs rounded text-gray-400 hover:text-white" title="Rotate Right">
+                        <ArrowPathIcon className="w-4 h-4" />
+                    </button>
+                    <div className="w-px h-4 bg-gray-700 mx-2"></div>
                     <button
-                        disabled={!nextImageId}
-                        onClick={() => nextImageId && goToImage(nextImageId)}
-                        className="p-1 hover:bg-gray-800 rounded disabled:opacity-30"
+                        onClick={() => setShowGrid(prev => !prev)}
+                        className={`px-2 py-1 text-xs rounded flex items-center gap-1 ${showGrid ? "bg-blue-900/50 text-blue-300" : "text-gray-400 hover:text-white"}`}
+                        title="Toggle Grid"
                     >
-                        <ArrowRightIcon className="w-4 h-4" />
+                        <ViewColumnsIcon className="w-4 h-4" />
+                    </button>
+                    <div className="w-px h-4 bg-gray-700 mx-2"></div>
+                    <button
+                        onClick={handleAutoDetect}
+                        disabled={detecting}
+                        className={`px-3 py-1 text-xs rounded flex items-center gap-1 ${detecting ? "bg-purple-900/50 text-purple-300" : "bg-purple-600 text-white hover:bg-purple-500"}`}
+                    >
+                        <SparklesIcon className="w-3 h-3" />
+                        {detecting ? "Detecting..." : "Auto Detect"}
+                    </button>
+                    <div className="w-px h-4 bg-gray-700 mx-2"></div>
+                    <button
+                        onClick={handleExport}
+                        className="px-3 py-1 text-xs rounded bg-gray-700 text-gray-300 hover:text-white flex items-center gap-2"
+                        title="Export JSON"
+                    >
+                        <ArrowDownTrayIcon className="w-3 h-3" />
+                        Export
                     </button>
                 </div>
-            </div>
 
-            <div className="flex items-center gap-2 bg-gray-800 rounded p-1">
-                <button onClick={() => setScale(s => s * 1.1)} className="p-1 text-gray-400 hover:text-white" title="Zoom In">
-                    <MagnifyingGlassPlusIcon className="w-4 h-4" />
-                </button>
-                <button onClick={() => setScale(s => s / 1.1)} className="p-1 text-gray-400 hover:text-white" title="Zoom Out">
-                    <MagnifyingGlassMinusIcon className="w-4 h-4" />
-                </button>
-                <button onClick={() => setScale(1)} className="p-1 text-gray-400 hover:text-white" title="Fit to Screen">
-                    <ArrowsPointingOutIcon className="w-4 h-4" />
-                </button>
-                <div className="w-px h-4 bg-gray-700 mx-2"></div>
-                <button onClick={() => setTool("select")} className={`px-3 py-1 text-xs rounded ${tool === "select" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Select (V)</button>
-                <button onClick={() => setTool("pan")} className={`px-3 py-1 text-xs rounded ${tool === "pan" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Pan (H)</button>
-                <button onClick={() => setTool("rect")} className={`px-3 py-1 text-xs rounded ${tool === "rect" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}>Rectangle (R)</button>
-                <div className="w-px h-4 bg-gray-700 mx-2"></div>
-                <button onClick={() => setRotation(r => r - 90)} className="px-2 py-1 text-xs rounded text-gray-400 hover:text-white" title="Rotate Left">
-                    <ArrowPathIcon className="w-4 h-4 -scale-x-100" />
-                </button>
-                <button onClick={() => setRotation(r => r + 90)} className="px-2 py-1 text-xs rounded text-gray-400 hover:text-white" title="Rotate Right">
-                    <ArrowPathIcon className="w-4 h-4" />
-                </button>
-                <div className="w-px h-4 bg-gray-700 mx-2"></div>
-                <button
-                    onClick={() => setShowGrid(prev => !prev)}
-                    className={`px-2 py-1 text-xs rounded flex items-center gap-1 ${showGrid ? "bg-blue-900/50 text-blue-300" : "text-gray-400 hover:text-white"}`}
-                    title="Toggle Grid"
-                >
-                    <ViewColumnsIcon className="w-4 h-4" />
-                </button>
-                <div className="w-px h-4 bg-gray-700 mx-2"></div>
-                <button
-                    onClick={handleAutoDetect}
-                    disabled={detecting}
-                    className={`px-3 py-1 text-xs rounded flex items-center gap-1 ${detecting ? "bg-purple-900/50 text-purple-300" : "bg-purple-600 text-white hover:bg-purple-500"}`}
-                >
-                    <SparklesIcon className="w-3 h-3" />
-                    {detecting ? "Detecting..." : "Auto Detect"}
-                </button>
-                <div className="w-px h-4 bg-gray-700 mx-2"></div>
-                <button
-                    onClick={handleExport}
-                    className="px-3 py-1 text-xs rounded bg-gray-700 text-gray-300 hover:text-white flex items-center gap-2"
-                    title="Export JSON"
-                >
-                    <ArrowDownTrayIcon className="w-3 h-3" />
-                    Export
-                </button>
-            </div>
+                <div className="flex items-center gap-2 bg-gray-800 rounded p-1 ml-4">
+                    <button
+                        onClick={() => setShowShortcuts(true)}
+                        className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+                        title="Shortcuts (?)"
+                    >
+                        <QuestionMarkCircleIcon className="w-5 h-5" />
+                    </button>
+                </div>
 
-            <div className="flex items-center gap-2 bg-gray-800 rounded p-1 ml-4">
-                <button
-                    onClick={() => setShowShortcuts(true)}
-                    className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
-                    title="Shortcuts (?)"
-                >
-                    <QuestionMarkCircleIcon className="w-5 h-5" />
-                </button>
-            </div>
+                <div>
+                    <span className={`text-xs px-2 py-1 rounded transition-colors ${saving ? "text-yellow-400" : "text-green-500"}`}>
+                        {saving ? "Saving..." : "Saved"}
+                    </span>
+                </div>
+            </header>
 
-            <div>
-                <span className={`text-xs px-2 py-1 rounded transition-colors ${saving ? "text-yellow-400" : "text-green-500"}`}>
-                    {saving ? "Saving..." : "Saved"}
-                </span>
-            </div>
-        </header>
+            <div className="flex-1 flex overflow-hidden">
+                {/* Helper Sidebar */}
+                <div className="w-16 border-r border-gray-800 bg-gray-900 flex flex-col items-center py-4 gap-4">
+                    {/* Could add tool icons here */}
+                </div>
 
-        <div className="flex-1 flex overflow-hidden">
-            {/* Helper Sidebar */}
-            <div className="w-16 border-r border-gray-800 bg-gray-900 flex flex-col items-center py-4 gap-4">
-                {/* Could add tool icons here */}
-            </div>
+                {/* Canvas */}
+                <div className="flex-1 bg-black relative flex items-center justify-center overflow-hidden">
+                    {imagePath && (
+                        <AnnotationStage
+                            imageSrc={imagePath}
+                            annotations={annotations}
+                            onAnnotationsChange={setAnnotations}
+                            onSelectAnnotation={setSelectedId}
+                            selectedId={selectedId}
 
-            {/* Canvas */}
-            <div className="flex-1 bg-black relative flex items-center justify-center overflow-hidden">
-                {imagePath && (
-                    <AnnotationStage
-                        imageSrc={imagePath}
-                        annotations={annotations}
-                        onAnnotationsChange={setAnnotations}
-                        onSelectAnnotation={setSelectedId}
-                        selectedId={selectedId}
-
-                        tool={tool}
-                        rotation={rotation}
-                        scale={scale}
-                        onScaleChange={setScale}
-                        brightness={brightness}
-                        contrast={contrast}
-                        showGrid={showGrid}
-                    />
-                )}
-            </div>
-
-            {/* Properties Sidebar */}
-            <div className="w-72 border-l border-gray-800 bg-gray-900 flex flex-col">
-                <div className="p-4 border-b border-gray-800">
-                    <h3 className="text-xs font-bold text-gray-500 uppercase mb-4">Properties</h3>
-                    {selectedAnnotation ? (
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-xs text-gray-400 block mb-1">Class Label</label>
-                                <input
-                                    list="classes"
-                                    type="text"
-                                    value={selectedAnnotation.label}
-                                    onChange={(e) => handleLabelChange(e.target.value)}
-                                    onBlur={(e) => handleLabelBlur(e.target.value)}
-                                    className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:border-blue-500 outline-none"
-                                />
-                                <datalist id="classes">
-                                    {projectClasses.map(cls => (
-                                        <option key={cls} value={cls} />
-                                    ))}
-                                </datalist>
-                            </div>
-                            <button
-                                onClick={toggleLock}
-                                className={`w-full p-2 rounded text-xs font-medium flex items-center justify-center gap-2 transition-colors ${selectedAnnotation.locked ? "bg-red-900/50 text-red-300 border border-red-800" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
-                            >
-                                {selectedAnnotation.locked ? (
-                                    <>
-                                        <LockClosedIcon className="w-4 h-4" /> Locked
-                                    </>
-                                ) : (
-                                    <>
-                                        <LockOpenIcon className="w-4 h-4" /> Unlocked
-                                    </>
-                                )}
-                            </button>
-                            <div className="grid grid-cols-2 gap-2 text-xs text-gray-400">
-                                <div>X: {Math.round(selectedAnnotation.x)}</div>
-                                <div>Y: {Math.round(selectedAnnotation.y)}</div>
-                                <div>W: {Math.round(selectedAnnotation.width)}</div>
-                                <div>H: {Math.round(selectedAnnotation.height)}</div>
-                            </div>
-                            <button
-                                onClick={handleDelete}
-                                className="w-full bg-red-900/50 text-red-400 border border-red-900 hover:bg-red-900 p-2 rounded text-xs transition-colors"
-                            >
-                                Delete Object
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            <div className="text-gray-500 text-xs font-bold uppercase mb-2">Image Adjustments</div>
-                            <div>
-                                <label className="text-xs text-gray-400 flex justify-between">
-                                    Brightness <span>{brightness.toFixed(1)}</span>
-                                </label>
-                                <input
-                                    type="range"
-                                    min="-1"
-                                    max="1"
-                                    step="0.1"
-                                    value={brightness}
-                                    onChange={(e) => setBrightness(parseFloat(e.target.value))}
-                                    className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs text-gray-400 flex justify-between">
-                                    Contrast <span>{contrast}</span>
-                                </label>
-                                <input
-                                    type="range"
-                                    min="-100"
-                                    max="100"
-                                    step="5"
-                                    value={contrast}
-                                    onChange={(e) => setContrast(parseInt(e.target.value))}
-                                    className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                                />
-                            </div>
-                            <button
-                                onClick={() => { setBrightness(0); setContrast(0); setRotation(0); }}
-                                className="text-xs text-blue-400 hover:text-blue-300 w-full text-center mt-2"
-                            >
-                                Reset Adjustments
-                            </button>
-                        </div>
+                            tool={tool}
+                            rotation={rotation}
+                            scale={scale}
+                            onScaleChange={setScale}
+                            brightness={brightness}
+                            contrast={contrast}
+                            showGrid={showGrid}
+                        />
                     )}
                 </div>
 
-                <div className="p-4 flex-1 overflow-y-auto">
-                    <h3 className="text-xs font-bold text-gray-500 uppercase mb-4">Objects List ({annotations.length})</h3>
-                    <div className="space-y-2">
-                        {annotations.map((ann, idx) => (
-                            <div
-                                key={ann.id}
-                                onClick={() => {
-                                    setSelectedId(ann.id);
-                                    setTool("select");
-                                }}
-                                className={`p-2 rounded cursor-pointer text-xs flex justify-between items-center border ${ann.id === selectedId ? "bg-blue-900/30 border-blue-500" : "bg-gray-800 border-transparent hover:border-gray-600"
-                                    }`}
-                            >
-                                <span className="font-medium truncate">{ann.label}</span>
-                                <span className="text-gray-500">#{idx + 1}</span>
+                {/* Properties Sidebar */}
+                <div className="w-72 border-l border-gray-800 bg-gray-900 flex flex-col">
+                    <div className="p-4 border-b border-gray-800">
+                        <h3 className="text-xs font-bold text-gray-500 uppercase mb-4">Properties</h3>
+                        {selectedAnnotation ? (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-xs text-gray-400 block mb-1">Class Label</label>
+                                    <input
+                                        list="classes"
+                                        type="text"
+                                        value={selectedAnnotation.label}
+                                        onChange={(e) => handleLabelChange(e.target.value)}
+                                        onBlur={(e) => handleLabelBlur(e.target.value)}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:border-blue-500 outline-none"
+                                    />
+                                    <datalist id="classes">
+                                        {projectClasses.map(cls => (
+                                            <option key={cls} value={cls} />
+                                        ))}
+                                    </datalist>
+                                </div>
+                                <button
+                                    onClick={toggleLock}
+                                    className={`w-full p-2 rounded text-xs font-medium flex items-center justify-center gap-2 transition-colors ${selectedAnnotation.locked ? "bg-red-900/50 text-red-300 border border-red-800" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
+                                >
+                                    {selectedAnnotation.locked ? (
+                                        <>
+                                            <LockClosedIcon className="w-4 h-4" /> Locked
+                                        </>
+                                    ) : (
+                                        <>
+                                            <LockOpenIcon className="w-4 h-4" /> Unlocked
+                                        </>
+                                    )}
+                                </button>
+                                <div className="grid grid-cols-2 gap-2 text-xs text-gray-400">
+                                    <div>X: {Math.round(selectedAnnotation.x)}</div>
+                                    <div>Y: {Math.round(selectedAnnotation.y)}</div>
+                                    <div>W: {Math.round(selectedAnnotation.width)}</div>
+                                    <div>H: {Math.round(selectedAnnotation.height)}</div>
+                                </div>
+                                <button
+                                    onClick={handleDelete}
+                                    className="w-full bg-red-900/50 text-red-400 border border-red-900 hover:bg-red-900 p-2 rounded text-xs transition-colors"
+                                >
+                                    Delete Object
+                                </button>
                             </div>
-                        ))}
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="text-gray-500 text-xs font-bold uppercase mb-2">Image Adjustments</div>
+                                <div>
+                                    <label className="text-xs text-gray-400 flex justify-between">
+                                        Brightness <span>{brightness.toFixed(1)}</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="-1"
+                                        max="1"
+                                        step="0.1"
+                                        value={brightness}
+                                        onChange={(e) => setBrightness(parseFloat(e.target.value))}
+                                        className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-400 flex justify-between">
+                                        Contrast <span>{contrast}</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="-100"
+                                        max="100"
+                                        step="5"
+                                        value={contrast}
+                                        onChange={(e) => setContrast(parseInt(e.target.value))}
+                                        className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                </div>
+                                <button
+                                    onClick={() => { setBrightness(0); setContrast(0); setRotation(0); }}
+                                    className="text-xs text-blue-400 hover:text-blue-300 w-full text-center mt-2"
+                                >
+                                    Reset Adjustments
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="p-4 flex-1 overflow-y-auto">
+                        <h3 className="text-xs font-bold text-gray-500 uppercase mb-4">Objects List ({annotations.length})</h3>
+                        <div className="space-y-2">
+                            {annotations.map((ann, idx) => (
+                                <div
+                                    key={ann.id}
+                                    onClick={() => {
+                                        setSelectedId(ann.id);
+                                        setTool("select");
+                                    }}
+                                    className={`p-2 rounded cursor-pointer text-xs flex justify-between items-center border ${ann.id === selectedId ? "bg-blue-900/30 border-blue-500" : "bg-gray-800 border-transparent hover:border-gray-600"
+                                        }`}
+                                >
+                                    <span className="font-medium truncate">{ann.label}</span>
+                                    <span className="text-gray-500">#{idx + 1}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <ShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
-    </main>
-);
+            <ShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
+        </main>
+    );
 }
