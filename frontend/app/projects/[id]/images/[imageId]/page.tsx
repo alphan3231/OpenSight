@@ -20,7 +20,9 @@ interface Annotation {
     y: number;
     width: number;
     height: number;
+
     label: string;
+    locked?: boolean;
 }
 
 interface Image {
